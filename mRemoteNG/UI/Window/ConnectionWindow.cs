@@ -330,6 +330,11 @@ namespace mRemoteNG.UI.Window
         private void Connection_ResizeBegin(object sender, EventArgs e)
         {
             ResizeBegin?.Invoke(this, e);
+            // protocols listen to their ConnectionTab, which never gets ResizeBegin/End because it isn't a
+            // top-level window. Without this, RDP reconnects on every intermediate size while dragging and the
+            // final size is dropped, so pass the size/move start and end through to each tab's protocol.
+            foreach (var protocol in GetTabProtocols())
+                protocol.ResizeBegin(sender, e);
         }
 
         public new event EventHandler ResizeEnd;
@@ -337,6 +342,17 @@ namespace mRemoteNG.UI.Window
         private void Connection_ResizeEnd(object sender, EventArgs e)
         {
             ResizeEnd?.Invoke(sender, e);
+            foreach (var protocol in GetTabProtocols())
+                protocol.ResizeEnd(sender, e);
+        }
+
+        private IEnumerable<ProtocolBase> GetTabProtocols()
+        {
+            return connDock.Documents
+                           .OfType<ConnectionTab>()
+                           .Select(tab => (tab.Tag as InterfaceControl)?.Protocol)
+                           .Where(protocol => protocol != null)
+                           .ToArray();
         }
 
         #endregion
