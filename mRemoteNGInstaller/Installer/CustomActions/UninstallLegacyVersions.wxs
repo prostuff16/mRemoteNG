@@ -2,9 +2,11 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?include $(sys.CURRENTDIR)Includes\Config.wxi?>
 	<Fragment>
-    <CustomAction Id="CheckIfLegacyVersionInstalled" Return="check" Execute="immediate" BinaryKey="CustomActions.CA.dll" DllEntry="IsLegacyVersionInstalled" />
+    <!-- firstSequence: these are scheduled in both the UI and execute sequences, but only need to run once. Re-running
+         them inside the installer service can fail (SFXCA "Failed to create temp directory. Error code 5") on locked-down machines -->
+    <CustomAction Id="CheckIfLegacyVersionInstalled" Return="check" Execute="firstSequence" BinaryKey="CustomActions.CA.dll" DllEntry="IsLegacyVersionInstalled" />
 	</Fragment>
   <Fragment>
-    <CustomAction Id="UninstallLegacyVersion" Return="check" Execute="immediate" BinaryKey="CustomActions.CA.dll" DllEntry="UninstallLegacyVersion" />
+    <CustomAction Id="UninstallLegacyVersion" Return="check" Execute="firstSequence" BinaryKey="CustomActions.CA.dll" DllEntry="UninstallLegacyVersion" />
   </Fragment>
 </Wix>
