@@ -570,6 +570,21 @@ namespace mRemoteNG.UI.Window
             }
         }
 
+        public void EnterRdpFullscreen()
+        {
+            try
+            {
+                var interfaceControl = GetInterfaceControl();
+                if (interfaceControl?.Protocol is RdpProtocol6 rdp && !rdp.Fullscreen)
+                    rdp.ToggleFullscreen();
+            }
+            catch (Exception ex)
+            {
+                Runtime.MessageCollector.AddExceptionMessage("EnterRdpFullscreen (UI.Window.ConnectionWindow) failed",
+                                                             ex);
+            }
+        }
+
         private void ShowPuttySettingsDialog()
         {
             try

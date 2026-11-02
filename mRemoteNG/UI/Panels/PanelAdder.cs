@@ -3,7 +3,6 @@ using mRemoteNG.Messages;
 using mRemoteNG.UI.Forms;
 using mRemoteNG.UI.Window;
 using System;
-using System.Collections;
 using System.Linq;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
@@ -74,7 +73,9 @@ namespace mRemoteNG.UI.Panels
                 Tag = pnlcForm
             };
             cMenScreens.DropDownItems.Add("Dummy");
-            cMenScreens.DropDownOpening += cMenConnectionPanelScreens_DropDownOpening;
+            cMenScreens.DropDown.ShowItemToolTips = true;
+            cMenScreens.DropDownOpening += (sender, e) => PopulateScreensMenu(cMenScreens, pnlcForm);
+            cMenScreens.DropDownClosed += (sender, e) => ScreenIdentifier.Hide();
             return cMenScreens;
         }
 
@@ -133,23 +134,37 @@ namespace mRemoteNG.UI.Panels
             }
         }
 
-        private static void cMenConnectionPanelScreens_DropDownOpening(object sender, EventArgs e)
+        private static void PopulateScreensMenu(ToolStripMenuItem cMenScreens, DockContent panel)
         {
             try
             {
-                var cMenScreens = (ToolStripMenuItem)sender;
                 cMenScreens.DropDownItems.Clear();
 
-                for (var i = 0; i <= Screen.AllScreens.Length - 1; i++)
+                var rdpFullscreenByDefault = Properties.Settings.Default.SendToScreenRdpFullscreen;
+                var screens = Screen.AllScreens;
+                for (var i = 0; i <= screens.Length - 1; i++)
                 {
-                    var cMenScreen = new ToolStripMenuItem(Language.Screen + " " + Convert.ToString(i + 1))
+                    var screen = screens[i];
+                    var screenNumber = i + 1;
+                    var cMenScreen = new ToolStripMenuItem(Language.Screen + " " + Convert.ToString(screenNumber))
                     {
-                        Tag = new ArrayList(),
-                        Image = Properties.Resources.Monitor_16x
+                        Image = Properties.Resources.Monitor_16x,
+                        ToolTipText = rdpFullscreenByDefault
+                            ? Language.SendToRightClickWindowedHint
+                            : Language.SendToRightClickFullscreenHint
                     };
-                    ((ArrayList)cMenScreen.Tag).Add(Screen.AllScreens[i]);
-                    ((ArrayList)cMenScreen.Tag).Add(cMenScreens.Tag);
-                    cMenScreen.Click += cMenConnectionPanelScreen_Click;
+                    // right-click does the opposite of the configured default. Click fires for right-clicks too but
+                    // doesn't carry the button, so it is captured on MouseDown (keyboard activation has no MouseDown)
+                    var rightClicked = false;
+                    cMenScreen.MouseDown += (sender, e) => rightClicked = e.Button == MouseButtons.Right;
+                    cMenScreen.MouseEnter += (sender, e) => ScreenIdentifier.Show(screen, screenNumber);
+                    cMenScreen.MouseLeave += (sender, e) => ScreenIdentifier.Hide();
+                    cMenScreen.Click += (sender, e) =>
+                    {
+                        var invert = rightClicked;
+                        rightClicked = false;
+                        cMenConnectionPanelScreen_Click(panel, screen, rdpFullscreenByDefault != invert);
+                    };
                     cMenScreens.DropDownItems.Add(cMenScreen);
                 }
             }
@@ -161,27 +176,12 @@ namespace mRemoteNG.UI.Panels
             }
         }
 
-        private static void cMenConnectionPanelScreen_Click(object sender, EventArgs e)
+        private static void cMenConnectionPanelScreen_Click(DockContent panel, Screen screen, bool rdpFullscreen)
         {
-            Screen screen = null;
-            DockContent panel = null;
             try
             {
-                var tagEnumeration = (IEnumerable)((ToolStripMenuItem)sender).Tag;
-                if (tagEnumeration == null) return;
-                foreach (var obj in tagEnumeration)
-                {
-                    if (obj is Screen screen1)
-                    {
-                        screen = screen1;
-                    }
-                    else if (obj is DockContent)
-                    {
-                        panel = (DockContent)obj;
-                    }
-                }
-
-                Screens.SendPanelToScreen(panel, screen);
+                ScreenIdentifier.Hide();
+                Screens.SendPanelToScreen(panel, screen, rdpFullscreen);
             }
             catch (Exception ex)
             {

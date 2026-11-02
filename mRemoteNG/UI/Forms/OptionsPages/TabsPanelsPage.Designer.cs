@@ -43,6 +43,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             this.chkCreateEmptyPanelOnStart = new MrngCheckBox();
             this.txtBoxPanelName = new mRemoteNG.UI.Controls.MrngTextBox();
             this.lblPanelName = new mRemoteNG.UI.Controls.MrngLabel();
+            this.chkSendToScreenRdpFullscreen = new MrngCheckBox();
             this.SuspendLayout();
             // 
             // chkAlwaysShowPanelTabs
@@ -172,10 +173,23 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             this.lblPanelName.TabIndex = 9;
             this.lblPanelName.Text = "Panel name:";
             // 
+            // chkSendToScreenRdpFullscreen
+            // 
+            this.chkSendToScreenRdpFullscreen._mice = MrngCheckBox.MouseState.OUT;
+            this.chkSendToScreenRdpFullscreen.AutoSize = true;
+            this.chkSendToScreenRdpFullscreen.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkSendToScreenRdpFullscreen.Location = new System.Drawing.Point(3, 255);
+            this.chkSendToScreenRdpFullscreen.Name = "chkSendToScreenRdpFullscreen";
+            this.chkSendToScreenRdpFullscreen.Size = new System.Drawing.Size(320, 17);
+            this.chkSendToScreenRdpFullscreen.TabIndex = 10;
+            this.chkSendToScreenRdpFullscreen.Text = "\"Send To\" a screen switches RDP connections to fullscreen";
+            this.chkSendToScreenRdpFullscreen.UseVisualStyleBackColor = true;
+            // 
             // TabsPanelsPage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.Controls.Add(this.chkSendToScreenRdpFullscreen);
             this.Controls.Add(this.lblPanelName);
             this.Controls.Add(this.txtBoxPanelName);
             this.Controls.Add(this.chkCreateEmptyPanelOnStart);
@@ -204,5 +218,6 @@ namespace mRemoteNG.UI.Forms.OptionsPages
         private MrngCheckBox chkCreateEmptyPanelOnStart;
         private Controls.MrngTextBox txtBoxPanelName;
         private Controls.MrngLabel lblPanelName;
+        internal MrngCheckBox chkSendToScreenRdpFullscreen;
     }
 }
