@@ -314,6 +314,11 @@ namespace mRemoteNG.Connection
             UseCredSsp = Settings.Default.ConDefaultUseCredSsp;
             UseVmId = Settings.Default.ConDefaultUseVmId;
             UseEnhancedMode = Settings.Default.ConDefaultUseEnhancedMode;
+            // without this, files older than confVersion 2.7 (which don't store RdpVersion) fall back to the enum's
+            // zero value, Rdc6, which has no automatic resize and other RDC8+ features
+            RdpVersion = Enum.TryParse(Settings.Default.ConDefaultRdpVersion, true, out RdpVersion rdpVersion)
+                ? rdpVersion
+                : RdpVersion.Highest;
         }
 
         private void SetRemoteDesktopServicesDefaults()
