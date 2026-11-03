@@ -570,6 +570,14 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Xml
                     connectionInfo.EC2InstanceId = xmlnode.GetAttributeAsString("EC2InstanceId");
                     connectionInfo.EC2Region = xmlnode.GetAttributeAsString("EC2Region");
                 }
+                else
+                {
+                    // Files older than 2.7 (mRemoteNG 1.76 and earlier) have no RedirectClipboard attribute. Those
+                    // versions never set the option, so the RDP client shared the clipboard by default. Keep it shared
+                    // instead of falling back to ConDefaultRedirectClipboard (false), which silently disabled copy and
+                    // paste for every upgraded connection.
+                    connectionInfo.RedirectClipboard = true;
+                }
             }
             catch (Exception ex)
             {
