@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using mRemoteNG.Resources.Language;
 
@@ -13,9 +14,72 @@ namespace mRemoteNG.UI
         public static void Show(Screen screen, int screenNumber)
         {
             Hide();
-            _current = new IdentifierForm(screen, screenNumber);
-            _current.Show();
+
+            // mRemoteNG runs DPI-unaware, so on a scaled monitor Screen.Bounds is in virtualized (96 DPI) units, and
+            // Windows doesn't stretch this layered overlay to match: at 125% it only covered 80% of the screen.
+            // Create the overlay per-monitor DPI aware instead and size it from the monitor's physical bounds.
+            var monitor = MonitorFromPoint(new Point(screen.Bounds.Left + screen.Bounds.Width / 2,
+                                                     screen.Bounds.Top + screen.Bounds.Height / 2),
+                                           MONITOR_DEFAULTTONEAREST);
+            var previousContext = TrySetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+            try
+            {
+                var bounds = screen.Bounds;
+                var info = new MONITORINFO { cbSize = Marshal.SizeOf(typeof(MONITORINFO)) };
+                if (previousContext != IntPtr.Zero && GetMonitorInfo(monitor, ref info))
+                    bounds = Rectangle.FromLTRB(info.rcMonitor.Left, info.rcMonitor.Top,
+                                                info.rcMonitor.Right, info.rcMonitor.Bottom);
+
+                // construct and create the handle inside the per-monitor scope so the window gets that awareness
+                _current = new IdentifierForm(screen, screenNumber, bounds);
+                _current.Show();
+            }
+            finally
+            {
+                if (previousContext != IntPtr.Zero)
+                    TrySetThreadDpiAwarenessContext(previousContext);
+            }
         }
+
+        // returns the previous context, or IntPtr.Zero if per-monitor awareness isn't available (before Windows 10 1607)
+        private static IntPtr TrySetThreadDpiAwarenessContext(IntPtr context)
+        {
+            try
+            {
+                return SetThreadDpiAwarenessContext(context);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                return IntPtr.Zero;
+            }
+        }
+
+        private static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
+        private const int MONITOR_DEFAULTTONEAREST = 2;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public int dwFlags;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromPoint(Point pt, int flags);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
         public static void Hide()
         {
@@ -38,17 +102,17 @@ namespace mRemoteNG.UI
             private readonly string _number;
             private readonly string _details;
 
-            public IdentifierForm(Screen screen, int screenNumber)
+            public IdentifierForm(Screen screen, int screenNumber, Rectangle bounds)
             {
                 _number = screenNumber.ToString();
-                _details = $"{screen.Bounds.Width} x {screen.Bounds.Height}" +
+                _details = $"{bounds.Width} x {bounds.Height}" +
                            (screen.Primary ? $" ({Language.PrimaryScreen})" : string.Empty);
 
                 FormBorderStyle = FormBorderStyle.None;
                 ShowInTaskbar = false;
                 StartPosition = FormStartPosition.Manual;
                 // set before the handle exists so the window is created directly on the target screen
-                Bounds = screen.Bounds;
+                Bounds = bounds;
                 BackColor = KeyColor;
                 TransparencyKey = KeyColor;
                 DoubleBuffered = true;
