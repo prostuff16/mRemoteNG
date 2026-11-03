@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 using mRemoteNG.UI.Forms;
+using mRemoteNG.UI.Window;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace mRemoteNG.App
@@ -25,12 +26,16 @@ namespace mRemoteNG.App
             }
         }
 
-        public static void SendPanelToScreen(DockContent panel, Screen screen)
+        public static void SendPanelToScreen(DockContent panel, Screen screen, bool rdpFullscreen = false)
         {
             panel.DockState = DockState.Float;
             if (panel.ParentForm == null) return;
-            panel.ParentForm.Left = screen.Bounds.Location.X;
-            panel.ParentForm.Top = screen.Bounds.Location.Y;
+            // move first so any per-monitor DPI rescale happens before we size the window
+            panel.ParentForm.Location = screen.WorkingArea.Location;
+            panel.ParentForm.Bounds = screen.WorkingArea;
+            // RDP fullscreen uses whichever monitor the control is on, so this must come after the move
+            if (rdpFullscreen)
+                (panel as ConnectionWindow)?.EnterRdpFullscreen();
         }
     }
 }

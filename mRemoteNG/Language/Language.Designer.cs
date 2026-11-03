@@ -5272,6 +5272,42 @@ namespace mRemoteNG.Resources.Language {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Right-click to also switch RDP to fullscreen.
+        /// </summary>
+        internal static string SendToRightClickFullscreenHint {
+            get {
+                return ResourceManager.GetString("SendToRightClickFullscreenHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Right-click to send without switching RDP to fullscreen.
+        /// </summary>
+        internal static string SendToRightClickWindowedHint {
+            get {
+                return ResourceManager.GetString("SendToRightClickWindowedHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;Send To&quot; a screen switches RDP connections to fullscreen.
+        /// </summary>
+        internal static string SendToScreenUsesRdpFullscreen {
+            get {
+                return ResourceManager.GetString("SendToScreenUsesRdpFullscreen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary.
+        /// </summary>
+        internal static string PrimaryScreen {
+            get {
+                return ResourceManager.GetString("PrimaryScreen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server &apos;{0}&apos; was not accessible..
         /// </summary>
         internal static string ServerNotAccessible {

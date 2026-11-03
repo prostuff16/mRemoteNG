@@ -32,6 +32,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             chkAlwaysShowPanelSelectionDlg.Text = Language.AlwaysShowPanelSelection;
             chkCreateEmptyPanelOnStart.Text = Language.CreateEmptyPanelOnStartUp;
             lblPanelName.Text = $@"{Language.PanelName}:";
+            chkSendToScreenRdpFullscreen.Text = Language.SendToScreenUsesRdpFullscreen;
         }
 
         public override void LoadSettings()
@@ -46,6 +47,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             chkAlwaysShowPanelSelectionDlg.Checked = Settings.Default.AlwaysShowPanelSelectionDlg;
             chkCreateEmptyPanelOnStart.Checked = Settings.Default.CreateEmptyPanelOnStartUp;
             txtBoxPanelName.Text = Settings.Default.StartUpPanelName;
+            chkSendToScreenRdpFullscreen.Checked = Settings.Default.SendToScreenRdpFullscreen;
             UpdatePanelNameTextBox();
         }
 
@@ -65,6 +67,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             Settings.Default.AlwaysShowPanelSelectionDlg = chkAlwaysShowPanelSelectionDlg.Checked;
             Settings.Default.CreateEmptyPanelOnStartUp = chkCreateEmptyPanelOnStart.Checked;
             Settings.Default.StartUpPanelName = txtBoxPanelName.Text;
+            Settings.Default.SendToScreenRdpFullscreen = chkSendToScreenRdpFullscreen.Checked;
         }
 
         private void UpdatePanelNameTextBox()
