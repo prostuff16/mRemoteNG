@@ -21,6 +21,26 @@ namespace mRemoteNG.Connection.Protocol.RDP
         private MsRdpClient8NotSafeForScripting RdpClient8 => (MsRdpClient8NotSafeForScripting)((AxHost)Control).GetOcx();
         private Size _controlBeginningSize;
 
+        // Resize requests are coalesced: the client rejects a Reconnect (and can drop a FullScreen change) while a
+        // previous Reconnect is still in progress, e.g. "Send To" floats + sizes the window and then enters fullscreen
+        private readonly System.Windows.Forms.Timer _resizeReconnectTimer = new System.Windows.Forms.Timer { Interval = 300 };
+
+        public RdpProtocol8()
+        {
+            _resizeReconnectTimer.Tick += (sender, e) =>
+            {
+                _resizeReconnectTimer.Stop();
+                ReconnectForResizeNow();
+            };
+        }
+
+        public override void Close()
+        {
+            _resizeReconnectTimer.Stop();
+            _resizeReconnectTimer.Dispose();
+            base.Close();
+        }
+
         protected override RdpVersion RdpProtocolVersion => RdpVersion.Rdc8;
 
         public override bool SmartSize
@@ -74,6 +94,15 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
         private void ReconnectForResize()
         {
+            _resizeReconnectTimer.Stop();
+            _resizeReconnectTimer.Start();
+        }
+
+        private void ReconnectForResizeNow()
+        {
+            if (Control == null || Control.IsDisposed)
+                return;
+
             if (!loginComplete)
                 return;
 
